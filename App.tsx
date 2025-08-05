@@ -1,7 +1,12 @@
-import React from 'react';
-import { Text, View, StyleSheet, StatusBar, FlatList } from 'react-native';
+import React, { JSX } from 'react';
+import { Text, View, StyleSheet, StatusBar, FlatList, ListRenderItem } from 'react-native';
 
-const stocks = [
+type StockItem = {
+  name: string;
+  qty: string;
+};
+
+const stocks: StockItem[] = [
   { name: 'Patanjali Mustard Oil 1 ltr', qty: '18.00 Pcs.' },
   { name: 'Patanjali Mustard Oil 5 ltr', qty: '20.00 Pcs.' },
   { name: 'Poha 1 kg', qty: '100.00 Pcs.' },
@@ -11,12 +16,18 @@ const stocks = [
   { name: 'Sooji 1 kg', qty: '15.00 Pcs.' },
 ];
 
-export default function App() {
+export default function App(): JSX.Element {
+  const renderItem: ListRenderItem<StockItem> = ({ item }) => (
+    <View style={styles.stockRow}>
+      <Text style={styles.stockName}>{item.name}</Text>
+      <Text style={styles.stockQty}>{item.qty}</Text>
+    </View>
+  );
+
   return (
     <View style={styles.container}>
       <StatusBar backgroundColor="#1362b2" barStyle="light-content" />
 
-      
       <View style={styles.header}>
         <Text style={styles.menuIcon}>☰</Text>
         <Text style={styles.headerTitle}>Demo Company</Text>
@@ -29,7 +40,6 @@ export default function App() {
         </View>
       </View>
 
-      
       <View style={styles.dateContainer}>
         <Text style={styles.calendarIcon}>📅</Text>
         <Text style={styles.dateText}>31-03-2023</Text>
@@ -37,26 +47,18 @@ export default function App() {
 
       <View style={styles.divider} />
 
-    
       <FlatList
         data={stocks}
-        keyExtractor={(item, idx) => idx.toString()}
+        keyExtractor={(_, idx) => idx.toString()}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 40 }}
-        renderItem={({ item }) => (
-          <View style={styles.stockRow}>
-            <Text style={styles.stockName}>{item.name}</Text>
-            <Text style={styles.stockQty}>{item.qty}</Text>
-          </View>
-        )}
+        renderItem={renderItem}
       />
-
 
       <View style={styles.bottomRow}>
         <Text style={styles.totalLabel}>Total Qty:</Text>
         <Text style={styles.totalQty}>2,585.00</Text>
       </View>
-
     </View>
   );
 }
@@ -67,14 +69,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#f7f9ff',
   },
   header: {
-  backgroundColor: '#1362b2',
-  height: 120,
-  paddingHorizontal: 18,
-  flexDirection: 'row',
-  alignItems: 'center',
-  zIndex: 2,
-  borderBottomLeftRadius: 25,
-  borderBottomRightRadius: 25,
+    backgroundColor: '#1362b2',
+    height: 120,
+    paddingHorizontal: 18,
+    flexDirection: 'row',
+    alignItems: 'center',
+    zIndex: 2,
+    borderBottomLeftRadius: 25,
+    borderBottomRightRadius: 25,
   },
   menuIcon: {
     fontSize: 23,
@@ -108,13 +110,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ddd',
     minWidth: 180,
-    alignItems: 'center'
+    alignItems: 'center',
   },
   statusChipText: {
     color: '#6f6f70ff',
     fontWeight: '600',
     fontSize: 15,
-    letterSpacing: 2
+    letterSpacing: 2,
   },
   dateContainer: {
     flexDirection: 'row',
@@ -129,7 +131,7 @@ const styles = StyleSheet.create({
   calendarIcon: {
     fontSize: 19,
     marginRight: 7,
-    color: '#8c8c8c'
+    color: '#8c8c8c',
   },
   dateText: {
     fontSize: 15,
@@ -139,7 +141,7 @@ const styles = StyleSheet.create({
   divider: {
     marginTop: 15,
     height: 1,
-    backgroundColor: '#ececec',
+    backgroundColor: '#fffdfdff',
     marginHorizontal: 10,
     marginBottom: 2,
   },
@@ -160,7 +162,7 @@ const styles = StyleSheet.create({
   stockQty: {
     fontSize: 15,
     color: '#757575',
-    fontWeight: '500'
+    fontWeight: '500',
   },
   bottomRow: {
     position: 'absolute',
@@ -168,7 +170,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 55,
-    backgroundColor: '#eae8e8ff',
+    backgroundColor: '#f0ededff',
     borderTopWidth: 1,
     borderTopColor: '#f3f3f9',
     flexDirection: 'row',
@@ -179,11 +181,11 @@ const styles = StyleSheet.create({
   totalLabel: {
     fontSize: 15,
     color: '#080404ff',
-    fontWeight: '600'
+    fontWeight: '600',
   },
   totalQty: {
     fontSize: 15,
     color: '#040507ff',
-    fontWeight: 'bold'
+    fontWeight: 'bold',
   },
 });
