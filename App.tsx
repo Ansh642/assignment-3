@@ -1,28 +1,74 @@
-import React, { JSX } from 'react';
-import { Text, View, StyleSheet, StatusBar, FlatList, ListRenderItem } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Text, View, StyleSheet, StatusBar, FlatList, ActivityIndicator } from 'react-native';
+import uuid from 'react-native-uuid';
 
-type StockItem = {
-  name: string;
-  qty: string;
+
+const fetchStocks = async (page: number) => {
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  
+  const mockData = [];
+  const products = ['Patanjali Mustard Oil', 'Poha', 'Saffola Refined Oil', 'Sooji'];
+  const sizes = ['1 ltr', '5 ltr', '1 kg', '500 Gm'];
+  
+  for (let i = 0; i < 20; i++) {
+    const product = products[Math.floor(Math.random() * products.length)];
+    const size = sizes[Math.floor(Math.random() * sizes.length)];
+    const qty = (Math.random() * 100).toFixed(2);
+    
+    mockData.push({
+      id: uuid.v4().toString(), 
+      name: `${product} ${size}`,
+      qty: `${qty} Pcs.`
+    });
+  }
+  
+  return mockData;
 };
 
-const stocks: StockItem[] = [
-  { name: 'Patanjali Mustard Oil 1 ltr', qty: '18.00 Pcs.' },
-  { name: 'Patanjali Mustard Oil 5 ltr', qty: '20.00 Pcs.' },
-  { name: 'Poha 1 kg', qty: '100.00 Pcs.' },
-  { name: 'Poha 500 Gm', qty: '50.00 Pcs.' },
-  { name: 'Saffola Refined Oil 1 ltr', qty: '10.00 Pcs.' },
-  { name: 'Saffola Refined Oil 5 ltr', qty: '10.00 Pcs.' },
-  { name: 'Sooji 1 kg', qty: '15.00 Pcs.' },
-];
 
-export default function App(): JSX.Element {
-  const renderItem: ListRenderItem<StockItem> = ({ item }) => (
+type Stock = { id: string; name: string; qty: string };
+
+export default function App() {
+  const [stocks, setStocks] = useState<Stock[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [totalQty, setTotalQty] = useState(2585.00);
+
+  const loadStocks = useCallback(async () => {
+    if (loading) return;
+    
+    setLoading(true);
+    try {
+      const newStocks = await fetchStocks(page);
+      setStocks(prev => [...prev, ...newStocks]);
+      setPage(prev => prev + 1);
+
+      const newQty = newStocks.reduce((sum, item) => sum + parseFloat(item.qty), 0);
+      setTotalQty(prev => prev + newQty);
+    } finally {
+      setLoading(false);
+    }
+  }, [page, loading]);
+
+  useEffect(() => {
+    loadStocks();
+  }, []);
+
+  const renderItem = ({ item }: { item: Stock }) => (
     <View style={styles.stockRow}>
       <Text style={styles.stockName}>{item.name}</Text>
       <Text style={styles.stockQty}>{item.qty}</Text>
     </View>
   );
+
+  const renderFooter = () => {
+    if (!loading) return null;
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="small" color="#1362b2" />
+      </View>
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -34,6 +80,7 @@ export default function App(): JSX.Element {
         <Text style={styles.arrowIcon}>⌄</Text>
       </View>
 
+      
       <View style={styles.statusChipContainer}>
         <View style={styles.statusChip}>
           <Text style={styles.statusChipText}>STOCK STATUS</Text>
@@ -49,15 +96,20 @@ export default function App(): JSX.Element {
 
       <FlatList
         data={stocks}
-        keyExtractor={(_, idx) => idx.toString()}
+        keyExtractor={(item) => item.id} 
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 40 }}
         renderItem={renderItem}
+        onEndReached={loadStocks}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={renderFooter}
       />
 
       <View style={styles.bottomRow}>
         <Text style={styles.totalLabel}>Total Qty:</Text>
-        <Text style={styles.totalQty}>2,585.00</Text>
+        <Text style={styles.totalQty}>
+          {totalQty.toLocaleString('en-IN', { maximumFractionDigits: 2 })}
+        </Text>
       </View>
     </View>
   );
@@ -166,7 +218,7 @@ const styles = StyleSheet.create({
   },
   bottomRow: {
     position: 'absolute',
-    bottom: 5,
+    bottom: 1,
     left: 0,
     right: 0,
     height: 55,
@@ -177,6 +229,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
+    zIndex: 2,
   },
   totalLabel: {
     fontSize: 15,
@@ -187,5 +240,8 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#040507ff',
     fontWeight: 'bold',
+  },
+  loadingContainer: {
+    paddingVertical: 20,
   },
 });
