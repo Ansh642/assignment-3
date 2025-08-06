@@ -28,11 +28,23 @@ const fetchStocks = async (page: number) => {
 
 type Stock = { id: string; name: string; qty: string };
 
+// FIX 1: Move renderItem outside the component. This prevents it from being recreated on every render.
+const renderItem = ({ item }: { item: Stock }) => (
+  <View style={styles.stockRow}>
+    <Text style={styles.stockName}>{item.name}</Text>
+    <Text style={styles.stockQty}>{item.qty}</Text>
+  </View>
+);
+
+// FIX 2: Move keyExtractor logic outside the component 
+const keyExtractor = (item: Stock) => item.id;
+
+
 export default function App() {
   const [stocks, setStocks] = useState<Stock[]>([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
-  const [totalQty, setTotalQty] = useState(2585.00);
+  const [totalQty, setTotalQty] = useState(0);
 
   const loadStocks = useCallback(async () => {
     if (loading) return;
@@ -52,14 +64,7 @@ export default function App() {
 
   useEffect(() => {
     loadStocks();
-  }, []);
-
-  const renderItem = ({ item }: { item: Stock }) => (
-    <View style={styles.stockRow}>
-      <Text style={styles.stockName}>{item.name}</Text>
-      <Text style={styles.stockQty}>{item.qty}</Text>
-    </View>
-  );
+  }, []); 
 
   const renderFooter = () => {
     if (!loading) return null;
@@ -96,19 +101,20 @@ export default function App() {
 
       <FlatList
         data={stocks}
-        keyExtractor={(item) => item.id} 
+        keyExtractor={keyExtractor} 
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 40 }}
-        renderItem={renderItem}
+        renderItem={renderItem} 
         onEndReached={loadStocks}
         onEndReachedThreshold={0.5}
         ListFooterComponent={renderFooter}
+        removeClippedSubviews={true} 
       />
 
       <View style={styles.bottomRow}>
         <Text style={styles.totalLabel}>Total Qty:</Text>
         <Text style={styles.totalQty}>
-          {totalQty.toLocaleString('en-IN', { maximumFractionDigits: 2 })}
+          {totalQty.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
         </Text>
       </View>
     </View>
